@@ -1,0 +1,39 @@
+---
+
+filebeat_package_state: present
+
+# Allow use of a specific *.deb, usually a nightly build from
+# https://beats-nightlies.s3.amazonaws.com/filebeat/
+filebeat_experimental: no
+# filebeat_experimental_deb_url:
+
+filebeat_spool_size: '2048'
+filebeat_idle_timeout: '5s'
+filebeat_registry_file: '/var/lib/filebeat/registry'
+filebeat_config_dir: '/etc/filebeat/filebeat.d/'
+
+# Set default file prospector paths. Will always be pre-empted by ENV var
+# $ELK_FILEBEAT_PROSPECTORS_PATHS_<NAME> if set.
+filebeat_prospectors:
+  - name: base
+    input_type: 'log'
+    paths:
+      - '/var/log/auth.log'
+      - '/var/log/boot.log'
+      - '/var/log/cloud-init-output.log'
+      - '/var/log/fail2ban.log'
+      - '/var/log/kern.log'
+      - '/var/log/syslog'
+    encoding: 'plain'
+    document_type: 'system'
+
+# Set default outputs. hosts will always be pre-empted by ENV var
+# $ELK_FILEBEAT_OUTPUT_HOSTS_<NAME> if set.
+filebeat_outputs:
+  - name: base
+    type: 'elasticsearch'
+    hosts:
+      - 'localhost'
+
+filebeat_logging_to_syslog: 'true'
+filebeat_logging_level: 'error'

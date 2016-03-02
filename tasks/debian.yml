@@ -1,0 +1,46 @@
+---
+
+- name: add elastic gpg key
+  apt_key:
+    url: "{{ filebeat_gpg_url }}"
+  when: not filebeat_experimental
+
+- name: add beats repository
+  apt_repository:
+    repo: "{{ filebeat_apt_repo }}"
+    state: present
+    update_cache: yes
+  when: not filebeat_experimental
+
+- name: install filebeat
+  apt:
+    name: filebeat
+    state: "{{ filebeat_package_state }}"
+  notify:
+    - restart filebeat
+  when: not filebeat_experimental
+
+- name: get experimental .deb sha
+  get_url: 
+    url: "{{filebeat_experimental_deb_url}}.sha1.txt"
+    dest: '/tmp/filebeat.deb.sha'
+  when: filebeat_experimental
+
+- name: set sha1
+  shell: "cat /tmp/filebeat.deb.sha | awk {'print $1'}"
+  register: filebeat_experimental_sha1
+  when: filebeat_experimental
+
+- name: get experimental .deb
+  get_url: 
+    url: "{{filebeat_experimental_deb_url}}"
+    checksum: "sha1:{{ filebeat_experimental_sha1.stdout }}"
+    dest: '/tmp/filebeat.deb' 
+  when: filebeat_experimental
+
+- name: install experimental .deb
+  apt:
+    deb: '/tmp/filebeat.deb'
+    state: present
+  when: filebeat_experimental
+

@@ -1,0 +1,321 @@
+################### Filebeat Configuration Example #########################
+
+############################# Filebeat ######################################
+filebeat:
+  # List of prospectors to fetch data.
+  prospectors:
+    # Each - is a prospector. Below are the prospector specific configurations
+{% for item in filebeat_prospectors %}
+    - input_type: {{ item.input_type| default ('log') }}
+      paths: [${ELK_FILEBEAT_PROSPECTORS_PATHS_{{item.name | upper}}:{{ item.paths | join(", ") }}}]
+      encoding: {{ item.encoding| default ('plain') }}
+{% if item.exclude_lines is defined %}
+      exclude_lines: {{ item.exclude_lines }}
+{% endif %}
+{% if item.include_lines is defined %}
+      include_lines: {{ item.include_lines }}
+{% endif %}
+{% if item.exclude_files is defined %}
+      exclude_files: {{ item.exclude_files }}
+{% endif %}
+{% if item.fields is defined %}
+      fields:
+{% for k,v in item.fields.iteritems() %}
+        {{ k }}: {{ v }}
+{% endfor %}
+{% endif %}
+{% if item.fields_under_root is defined %}
+      fields_under_root: {{ item.fields_under_root }}
+{% endif %}
+{% if item.ignore_older is defined %}
+      ignore_older: {{ item.ignore_older }}
+{% endif %}
+{% if item.close_older is defined %}
+      close_older: {{ item.close_older }}
+{% endif %}
+      document_type: {{ item.document_type| default ('log') }}
+{% if item.scan_frequency is defined %}
+      scan_frequency: {{ item.scan_frequency }}
+{% endif %}
+{% if item.harvester_buffer_size is defined %}
+      harvester_buffer_size: {{ item.harvester_buffer_size }}
+{% endif %}
+{% if item.max_bytes is defined %}
+      max_bytes: {{ item.max_bytes }}
+{% endif %}
+{% if item.tail_files is defined %}
+      tail_files: {{ item.tail_files }}
+{% endif %}
+{% if item.backoff is defined %}
+      backoff: {{ item.backoff }}
+{% endif %}
+{% if item.max_backoff is defined %}
+      max_backoff: {{ item.max_backoff }}
+{% endif %}
+{% if item.backoff_factor is defined %}
+      backoff_factor: {{ item.backoff_factor }}
+{% endif %}
+{% if item.force_close_files is defined %}
+      force_close_files: {{ item.force_close_files }}
+{% endif %}
+{% endfor %}
+
+  # General filebeat configuration options
+  #
+  # Event count spool threshold - forces network flush if exceeded
+  spool_size: {{ filebeat_spool_size }}
+
+  # Enable async publisher pipeline in filebeat (Experimental!)
+  #publish_async: false
+
+  # Defines how often the spooler is flushed. After idle_timeout the spooler is
+  # Flush even though spool_size is not reached.
+  idle_timeout: {{ filebeat_idle_timeout }}
+
+  # Name of the registry file. Per default it is put in the current working
+  # directory. In case the working directory is changed after when running
+  # filebeat again, indexing starts from the beginning again.
+  registry_file: {{ filebeat_registry_file }}
+
+  # Full Path to directory with additional prospector configuration files. Each file must end with .yml
+  # These config files must have the full filebeat config part inside, but only
+  # the prospector part is processed. All global options like spool_size are ignored.
+  # The config_dir MUST point to a different directory then where the main filebeat config file is in.
+  config_dir: ${ELK_FILEBEAT_CONFIG_DIR:{{ filebeat_config_dir }}}
+
+###############################################################################
+############################# Libbeat Config ##################################
+# Base config file used by all other beats for using libbeat features
+
+############################# Output ##########################################
+
+# Configure what outputs to use when sending the data collected by the beat.
+# Multiple outputs may be used.
+output:
+{% for item in filebeat_outputs %}
+  {{ item.type }}:
+{% if item.type == "elasticsearch" %}
+    hosts: [${ELK_FILEBEAT_OUTPUT_HOSTS_{{item.name | upper}}:{{ item.hosts | join(", ") }}}]
+{% if item.protocol is defined %}
+    protocol: {{ item.protocol }}
+{% endif %}
+{% if item.username is defined %}
+    username: {{ item.username }}
+{% endif %}
+{% if item.password is defined %}
+    password: {{ item.password }}
+{% endif %}
+{% if item.parameters is defined %}
+    parameters:
+{% for k,v in item.parameters.iteritems() %}
+      {{ k }}: {{ v }}
+{% endfor %}
+{% endif %}
+    worker: {{ item.workers | default('1')}}
+{% if item.index is defined %}
+    index: {{ item.index }}
+{% endif %}
+{% if item.path is defined %}
+    path: {{ item.path }}
+{% endif %}
+{% if item.proxy_url is defined %}
+    proxy_url: {{ item.proxy_url }}
+{% endif %}
+{% if item.max_retries is defined %}
+    max_retries: {{ item.max_retries }}
+{% endif %}
+{% if item.bulk_max_size is defined %}
+    bulk_max_size: {{ item.bulk_max_size }}
+{% endif %}
+{% if item.timeout is defined %}
+    timeout: {{ item.timeout }}
+{% endif %}
+{% if item.flush_interval is defined %}
+    flush_interval: {{ item.flush_interval }}
+{% endif %}
+{% if item.save_topology is defined %}
+    save_topology: {{ item.save_topology }}
+{% endif %}
+{% if item.topology_expire is defined %}
+    topology_expire: {{ item.topology_expire }}
+{% endif %}
+{% if item.tls is defined %}
+    tls:
+{% if item.tls.certificate_authorities is defined %}
+      certificate_authorities: {{ item.tls.certificate_authorities }}
+{% endif %}
+{% if item.tls.certificate is defined %}
+      certificate: {{ item.tls.certificate }}
+{% endif %}
+{% if item.tls.certificate_key is defined %}
+      certificate_key: {{ item.tls.certificate_key }}
+{% endif %}
+{% if item.tls.insecure is defined %}
+      insecure: {{ item.tls.insecure }}
+{% endif %}
+{% if item.tls.cipher_suites is defined %}
+      cipher_suites: {{ item.tls.cipher_suites }}
+{% endif %}
+{% if item.tls.curve_types is defined %}
+      curve_types: {{ item.tls.curve_types }}
+{% endif %}
+{% if item.tls.min_version is defined %}
+      min_version: {{ item.tls.min_version }}
+{% endif %}
+{% if item.tls.max_version is defined %}
+      max_version: {{ item.tls.max_version }}
+{% endif %}
+{% endif %}
+{% endif %}
+
+{% if item.type == "logstash" %}
+    hosts: [${ELK_FILEBEAT_OUTPUT_HOSTS_{{item.name | upper}}:{{ item.hosts | join(", ") }}}]
+    worker: {{ item.workers | default('1')}}
+{% if item.compression_level is defined %}
+    compression_level: {{ item.compression_level }}
+{% endif %}
+{% if item.loadbalance is defined %}
+    loadbalance: {{ item.loadbalance }}
+{% endif %}
+{% if item.index is defined %}
+    index: {{ item.index }}
+{% endif %}
+{% if item.tls is defined %}
+    tls:
+{% if item.tls.certificate_authorities is defined %}
+      certificate_authorities: {{ item.tls.certificate_authorities }}
+{% endif %}
+{% if item.tls.certificate is defined %}
+      certificate: {{ item.tls.certificate }}
+{% endif %}
+{% if item.tls.certificate_key is defined %}
+      certificate_key: {{ item.tls.certificate_key }}
+{% endif %}
+{% if item.tls.insecure is defined %}
+      insecure: {{ item.tls.insecure }}
+{% endif %}
+{% if item.tls.cipher_suites is defined %}
+      cipher_suites: {{ item.tls.cipher_suites }}
+{% endif %}
+{% if item.tls.curve_types is defined %}
+      curve_types: {{ item.tls.curve_types }}
+{% endif %}
+{% endif %}
+{% endif %}
+
+{% if item.type == "file" %}
+    path: "{{ item.path | default('/tmp/filebeat') }}"
+    filename: {{ item.filename | default('filebeat')}}
+{% if item.rotate_every_kb is defined %}
+    rotate_every_kb: {{ item.rotate_every_kb }}
+{% endif %}
+{% if item.number_of_files is defined %}
+    number_of_files: {{ item.number_of_files }}
+{% endif %}
+{% endif %}
+
+{% if item.type == "console" %}
+    pretty: "{{ item.pretty | default('false') }}"
+{% endif %}
+
+{% endfor %}
+
+############################# Shipper #########################################
+
+shipper:
+  # The name of the shipper that publishes the network data. It can be used to group
+  # all the transactions sent by a single shipper in the web interface.
+  # If this options is not defined, the hostname is used.
+
+  name: ${ELK_FILEBEAT_SHIPPER_NAME{%- if filebeat_shipper_name is defined-%}:{{ filebeat_shipper_name }}{%- endif -%}}
+
+
+  # The tags of the shipper are included in their own field with each
+  # transaction published. Tags make it easy to group servers by different
+  # logical properties.
+  tags: [${ELK_FILEBEAT_SHIPPER_TAGS{%- if filebeat_shipper_tags is defined-%}:{{ filebeat_shipper_tags | join(", ") }}{%- endif -%}}]
+
+  # Uncomment the following if you want to ignore transactions created
+  # by the server on which the shipper is installed. This option is useful
+  # to remove duplicates if shippers are installed on multiple servers.
+{% if filebeat_shipper_ignore_outgoing is defined %}
+  ignore_outgoing: {{ filebeat_shipper_ignore_outgoing }}
+{% endif %}
+
+  # How often (in seconds) shippers are publishing their IPs to the topology map.
+  # The default is 10 seconds.
+{% if filebeat_shipper_refresh_topology_freq is defined %}
+  refresh_topology_freq: {{ filebeat_shipper_refresh_topology_freq }}
+{% endif %}
+
+  # Expiration time (in seconds) of the IPs published by a shipper to the topology map.
+  # All the IPs will be deleted afterwards. Note, that the value must be higher than
+  # refresh_topology_freq. The default is 15 seconds.
+{% if filebeat_shipper_topology_expire is defined %}
+  topology_expire: {{ filebeat_shipper_topology_expire }}
+{% endif %}
+
+  # Internal queue size for single events in processing pipeline
+{% if filebeat_shipper_queue_size is defined %}
+  queue_size: {{ filebeat_shipper_queue_size }}
+{% endif %}
+
+  # Configure local GeoIP database support.
+  # If no paths are not configured geoip is disabled.
+  #geoip:
+    #paths:
+    #  - "/usr/share/GeoIP/GeoLiteCity.dat"
+    #  - "/usr/local/var/GeoIP/GeoLiteCity.dat"
+
+
+############################# Logging #########################################
+
+# There are three options for the log ouput: syslog, file, stderr.
+# Under Windos systems, the log files are per default sent to the file output,
+# under all other system per default to syslog.
+logging:
+
+  # Send all logging output to syslog. On Windows default is false, otherwise
+  # default is true.
+{% if filebeat_logging_to_syslog is defined %}
+  to_syslog: {{ filebeat_logging_to_syslog }}
+{% endif %}
+
+  # Write all logging output to files. Beats automatically rotate files if rotateeverybytes
+  # limit is reached.
+{% if filebeat_logging_to_files is defined %}
+  to_files: {{ filebeat_logging_to_files }}
+
+  # To enable logging to files, to_files option has to be set to true
+{% if filebeat_logging_to_files == true %}
+  files:
+{% for file in filebeat_logging_files %}
+    # The directory where the log files will written to.
+    path: {{ file.path }}
+
+    # The name of the files where the logs are written to.
+    name: {{ file.name }}
+
+    # Configure log file size limit. If limit is reached, log file will be
+    # automatically rotated
+{% if file.rotateeverybytes is defined %}
+    rotateeverybytes: {{ file.rotateeverybytes }}
+{% endif %}
+
+    # Number of rotated log files to keep. Oldest files will be deleted first.
+{% if file.keepfiles is defined %}
+    keepfiles: {{ file.keepfiles }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+  # Enable debug output for selected components. To enable all selectors use ["*"]
+  # Other available selectors are beat, publish, service
+  # Multiple selectors can be chained.
+  #selectors: [ ]
+
+  # Sets log level. The default log level is error.
+  # Available log levels are: critical, error, warning, info, debug
+{% if filebeat_logging_level is defined %}
+  level: {{ filebeat_logging_level }}
+{% endif %}
