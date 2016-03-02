@@ -81,7 +81,7 @@ filebeat:
   # These config files must have the full filebeat config part inside, but only
   # the prospector part is processed. All global options like spool_size are ignored.
   # The config_dir MUST point to a different directory then where the main filebeat config file is in.
-  config_dir: ${ELK_FILEBEAT_CONFIG_DIR:{{ filebeat_config_dir }}}
+  config_dir: {{ filebeat_config_dir }}
 
 ###############################################################################
 ############################# Libbeat Config ##################################

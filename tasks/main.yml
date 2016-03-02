@@ -13,8 +13,6 @@
   file:
     path: "{{filebeat_config_dir}}"
     state: 'directory'
-  notify:
-    - restart filebeat
 
 - name: flush handlers to prevent start then restart
   meta: flush_handlers
