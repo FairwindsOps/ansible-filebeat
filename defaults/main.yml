@@ -35,5 +35,10 @@ filebeat_outputs:
     hosts:
       - 'localhost'
 
-filebeat_logging_to_syslog: 'true'
+filebeat_logging_to_syslog: false
+filebeat_logging_to_files: true
+filebeat_logging_files:
+  - path: /var/log
+    name: filebeat.log
+    keepfiles: 7
 filebeat_logging_level: 'error'
