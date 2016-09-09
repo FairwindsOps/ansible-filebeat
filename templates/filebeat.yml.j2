@@ -204,25 +204,43 @@ output:
 {% endif %}
 
 {% if item.type == "redis" %}
-    host: ${ELK_FILEBEAT_OUTPUT_HOSTS_{{item.name | upper}}:{{ item.host }}}
+    hosts: [${ELK_FILEBEAT_OUTPUT_HOSTS_{{item.name | upper}}:{{ item.hosts | join(", ") }}}]
+{% if item.port is defined %}
     port: {{item.port}}
-{% if item.db is defined %}
-    db: {{ item.db }}
-{% endif %}
-{% if item.db_topology is defined %}
-    db_topology: {{ item.db_topology }}
 {% endif %}
 {% if item.index is defined %}
     index: {{ item.index }}
 {% endif %}
+{% if item.key is defined %}
+    key: {{ item.key }}
+{% endif %}
 {% if item.password is defined %}
     password: {{ item.password }}
+{% endif %}
+{% if item.db is defined %}
+    db: {{ item.db }}
+{% endif %}
+{% if item.datatype is defined %}
+    datatype: {{ item.datatype }}
+{% endif %}
+{% if item.host_topology is defined %}
+    host_topology: {{ item.host_topology }}
+{% endif %}
+{% if item.password_topology is defined %}
+    password_topology: {{ item.password_topology }}
+{% endif %}
+{% if item.db_topology is defined %}
+    db_topology: {{ item.db_topology }}
+{% endif %}
+    worker: {{ item.workers | default('1')}}
+{% if item.loadbalance is defined %}
+    loadbalance: {{ item.loadbalance }}
 {% endif %}
 {% if item.timeout is defined %}
     timeout: {{ item.timeout }}
 {% endif %}
-{% if item.reconnect_interval is defined %}
-    reconnect_interval: {{ item.reconnect_interval }}
+{% if item.max_retries is defined %}
+    max_retries: {{ item.max_retries }}
 {% endif %}
 {% if item.bulk_max_size is defined %}
     bulk_max_size: {{ item.bulk_max_size }}
