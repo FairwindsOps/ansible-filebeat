@@ -204,7 +204,12 @@ output:
 {% endif %}
 
 {% if item.type == "redis" %}
+{% if item.hosts is defined %}
     hosts: [${ELK_FILEBEAT_OUTPUT_HOSTS_{{item.name | upper}}:{{ item.hosts | join(", ") }}}]
+{% endif %}
+{% if item.host is defined %}
+    host: ${ELK_FILEBEAT_OUTPUT_HOSTS_{{item.name | upper}}:{{ item.host }}}
+{% endif %}
 {% if item.port is defined %}
     port: {{item.port}}
 {% endif %}
