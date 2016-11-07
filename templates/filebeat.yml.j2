@@ -33,6 +33,9 @@ filebeat:
 {% if item.close_older is defined %}
       close_older: {{ item.close_older }}
 {% endif %}
+{% if item.close_inactive is defined %}
+      close_inactive: {{ item.close_inactive }}
+{% endif %}
       document_type: {{ item.document_type| default ('log') }}
 {% if item.scan_frequency is defined %}
       scan_frequency: {{ item.scan_frequency }}
